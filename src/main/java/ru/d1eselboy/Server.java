@@ -1,8 +1,9 @@
-package netty;
+package ru.d1eselboy;
 
 /**
  * Created by ermolaev on 22/12/16.
  */
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -11,6 +12,8 @@ import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
+
+import java.util.Arrays;
 
 /**
  * @author ermolaev
@@ -36,7 +39,7 @@ public class Server {
                                 @Override
                                 public void channelActive(final ChannelHandlerContext ctx) throws Exception {
                                     final ByteBuf buff = ctx.alloc().buffer();
-                                    buff.writeBytes("This is a test".getBytes());
+                                    buff.writeBytes("Socket read test successfully completed".getBytes());
                                     ctx.writeAndFlush(buff).addListeners(new ChannelFutureListener() {
                                         @Override
                                         public void operationComplete(ChannelFuture future) {
@@ -64,19 +67,21 @@ public class Server {
                                      @Override
                                      public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
                                          final ByteBuf buff = (ByteBuf) msg;
-                                         try {
-                                             byte[] bytes = new byte[buff.readableBytes()];
-                                             buff.getBytes(0, bytes);
-                                             System.out.println(new String(bytes));
-                                         } finally {
-                                             buff.release();
+                                         while (true) {
+                                             if (buff.isReadable()) {
+                                                 byte[] bytes = new byte[buff.readableBytes()];
+                                                 buff.getBytes(0, bytes);
+                                                 System.out.println(new String(bytes));
+                                             }
+                                             buff.clear();
                                          }
-                                         ctx.close();
                                      }
 
                                      @Override
-                                     public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) throws Exception {
-                                         System.out.println("Error occur when reading from Unix domain socket: " + cause.getMessage());
+                                     public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) throws
+                                         Exception {
+                                         System.err.println("Error occur when reading from Unix domain socket: " + cause.getMessage());
+                                         System.err.println("Trace: " + Arrays.toString(cause.getStackTrace()));
                                          ctx.close();
                                      }
                                  }

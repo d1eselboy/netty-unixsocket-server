@@ -20,7 +20,7 @@ jar {
         exclude "META-INF/*.RSA"
     }
     manifest {
-        attributes("Main-Class": "netty.Server")
+        attributes("Main-Class": "ru.d1eselboy.Server")
     }
 }
 
