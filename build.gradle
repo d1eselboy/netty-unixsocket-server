@@ -10,11 +10,18 @@ repositories {
 dependencies {
     compile group: 'io.netty', name: 'netty-all', version: '4.1.6.Final'
     compile group: 'commons-io', name: 'commons-io', version: '2.5'
-
-    compile group: 'com.kohlschutter.junixsocket', name: 'junixsocket-native-common', version: '2.0.4'
-    compile group: 'com.kohlschutter.junixsocket', name: 'junixsocket-common', version: '2.0.4'
-
-    compile group: 'com.github.jnr', name: 'jnr-unixsocket', version: '0.15'
-
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
+
+jar {
+    from(configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }) {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    manifest {
+        attributes("Main-Class": "netty.Server")
+    }
+}
+
+

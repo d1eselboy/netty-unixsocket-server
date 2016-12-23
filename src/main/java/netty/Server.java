@@ -13,8 +13,11 @@ import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
 
 /**
- * @author louyl
+ * @author ermolaev
  */
+
+//Сделать в 2 треда
+
 public class Server {
     public static void main(String[] args) throws Exception {
         String sockPath = "/tmp/echo.sock";
