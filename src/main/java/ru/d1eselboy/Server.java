@@ -13,6 +13,7 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
 
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -23,12 +24,12 @@ import java.util.Arrays;
 
 public class Server {
     public static void main(String[] args) throws Exception {
-        String sockPath = "/tmp/echo.sock";
         final ServerBootstrap bootstrap = new ServerBootstrap();
+        File socketFile = new File("/usr/echo.sock");
         EventLoopGroup serverBossEventLoopGroup = new EpollEventLoopGroup();
         EventLoopGroup serverWorkerEventLoopGroup = new EpollEventLoopGroup();
         bootstrap.group(serverBossEventLoopGroup, serverWorkerEventLoopGroup)
-            .localAddress(new DomainSocketAddress(sockPath))
+            .localAddress(new DomainSocketAddress(socketFile))
             .channel(EpollServerDomainSocketChannel.class)
             .childHandler(
                 new ChannelInitializer<Channel>() {
@@ -40,12 +41,9 @@ public class Server {
                                 public void channelActive(final ChannelHandlerContext ctx) throws Exception {
                                     final ByteBuf buff = ctx.alloc().buffer();
                                     buff.writeBytes("Socket read test successfully completed".getBytes());
-                                    ctx.writeAndFlush(buff).addListeners(new ChannelFutureListener() {
-                                        @Override
-                                        public void operationComplete(ChannelFuture future) {
-                                            future.channel().close();
-                                            future.channel().parent().close();
-                                        }
+                                    ctx.writeAndFlush(buff).addListeners((ChannelFutureListener) future -> {
+                                        future.channel().close();
+                                        future.channel().parent().close();
                                     });
                                 }
                             }
@@ -89,7 +87,7 @@ public class Server {
                          }
                      }
             );
-        final ChannelFuture clientFuture = bootstrapClient.connect(new DomainSocketAddress(sockPath)).sync();
+        final ChannelFuture clientFuture = bootstrapClient.connect(new DomainSocketAddress(socketFile)).sync();
 
         clientFuture.channel().closeFuture().sync();
         serverFuture.channel().closeFuture().sync();
